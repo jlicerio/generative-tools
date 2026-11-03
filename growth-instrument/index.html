@@ -510,8 +510,16 @@ SYSTEMS.diffgrowth = {
   svg(s){
     const n = s.nodes;
     if (n.length < 3) return "";
+    const at = (i)=>n[(i+n.length)%n.length];
+    const mx = (a,b)=>(a.x+b.x)/2, my = (a,b)=>(a.y+b.y)/2;
+    // midpoint quadratics, the same curve the canvas draws
+    let d = `M ${mx(at(0),at(1)).toFixed(2)} ${my(at(0),at(1)).toFixed(2)}`;
+    for (let i=1;i<=n.length;i++){
+      const q = at(i), nx = at(i+1);
+      d += ` Q ${q.x.toFixed(2)} ${q.y.toFixed(2)} ${mx(q,nx).toFixed(2)} ${my(q,nx).toFixed(2)}`;
+    }
     const filled = (paramMap().fill === "fill");
-    return `<polygon points="${n.map(q=>q.x.toFixed(2)+","+q.y.toFixed(2)).join(" ")}" fill="${filled ? "url(#g)" : "none"}" stroke-width="1.1"/>`;
+    return `<path d="${d} Z" fill="${filled ? "url(#g)" : "none"}" stroke-width="1.1"/>`;
   },
 };
 
@@ -767,6 +775,9 @@ function permalink(){
   u.searchParams.set("bands", S.bands);
   u.searchParams.set("contours", S.contours);
   u.searchParams.set("points", S.points);
+  u.searchParams.set("step", S.steps);
+  // every shape value, so the link reproduces the form
+  for (const p of SYSTEMS[S.system].params) u.searchParams.set(p.k, p.value);
   history.replaceState(null, "", u);
 }
 
@@ -1311,7 +1322,7 @@ $("svg").addEventListener("click", ()=>{
 /* ---------- boot ---------- */
 (function boot(){
   const q = new URLSearchParams(location.search);
-  if (q.get("s") && SYSTEMS[q.get("s")]) S.system = q.get("s");
+  if (Object.hasOwn(SYSTEMS, q.get("s") || "")) S.system = q.get("s");
   if (q.get("seed")) S.seed = (parseInt(q.get("seed"),10) >>> 0);
   if (q.get("g")) S.growth = Math.min(100, Math.max(5, parseInt(q.get("g"),10) || 90));
   if (q.get("pal") && RAMPS.some(r=>r.id===q.get("pal"))) S.ramp = q.get("pal");
@@ -1319,6 +1330,15 @@ $("svg").addEventListener("click", ()=>{
   if (q.get("contours") !== null) S.contours = Math.max(0, Math.min(12, parseInt(q.get("contours"),10) || 0));
   if (["grid","25000","100000","400000"].includes(q.get("points"))) S.points = q.get("points");
   if (q.get("particles") !== null) S.particles = Math.max(1, Math.min(8, parseInt(q.get("particles"),10) || 5));
+  for (const p of SYSTEMS[S.system].params){
+    const raw = q.get(p.k);
+    if (raw === null) continue;
+    if (p.type === "select"){ if (p.options.includes(raw)) p.value = raw; }
+    else {
+      const num = parseFloat(raw);
+      if (Number.isFinite(num)) p.value = Math.min(p.max, Math.max(p.min, num));
+    }
+  }
   sysSel.value = S.system;
   $("seed").value = S.seed;
   $("growth").value = S.growth; $("growthV").textContent = S.growth + "%";
@@ -1331,7 +1351,6 @@ $("svg").addEventListener("click", ()=>{
   [...rampHost.children].forEach(c=>c.setAttribute("aria-pressed", String(c.dataset.ramp === S.ramp)));
   buildParams();
   regrow();
-  permalink();
   // ?step=N fast-forwards to a fixed step, so a form is addressable
   const target = parseInt(q.get("step"), 10);
   if (Number.isFinite(target) && target > 0){
@@ -1340,6 +1359,7 @@ $("svg").addEventListener("click", ()=>{
     for (let i=0;i<n;i++){ sys.step(state, p); S.steps++; }
     draw(); updateStatus();
   }
+  permalink();
   let last = 0;
   function loop(t){
     requestAnimationFrame(loop);
