@@ -1,0 +1,1354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Growth instrument — study 01</title>
+<style>
+  :root{
+    --paper:#f5f3f0; --ink:#0e0e0e; --line:#2a2a2a;
+    --purple:#af48e6; --green:#00e13b; --yellow:#fbe000; --orange:#fb6c2d; --blue:#1a00fc;
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+    --disp:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--paper);color:var(--ink);font-family:var(--mono);-webkit-font-smoothing:antialiased}
+  main{display:grid;grid-template-columns:1fr 330px;min-height:100vh;min-height:100svh}
+  main>*{min-width:0}
+  .stage{position:relative;display:grid;place-items:center;padding:18px;min-width:0}
+  .frame{width:min(100%, calc((100vh - 36px) * 0.75));width:min(100%, calc((100svh - 36px) * 0.75));aspect-ratio:3/4}
+  canvas{display:block;width:100%;height:100%;image-rendering:pixelated;box-shadow:0 1px 0 rgba(0,0,0,.06)}
+  .stamp{position:absolute;left:18px;bottom:14px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8a8a86}
+  .panel{background:var(--ink);color:#eaeaea;padding:14px 13px 18px;overflow-y:auto;max-height:100vh;max-height:100svh}
+  h1{font-family:var(--disp);font-size:15px;font-weight:700;letter-spacing:-.01em;margin:0 0 2px}
+  .sub{font-size:9px;color:#7d7d7d;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px}
+  .row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:6px 0 2px;font-size:10.5px;color:#c8c8c8}
+  .row b{font-weight:400;color:#fff;font-variant-numeric:tabular-nums}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:14px;background:transparent;margin:0}
+  input[type=range]::-webkit-slider-runnable-track{height:2px;background:#3a3a3a}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;
+    background:#fff;margin-top:-4.5px;cursor:pointer}
+  input[type=range]:focus-visible{outline:1px solid #666;outline-offset:4px}
+  select,input[type=number],button{font-family:var(--mono);font-size:11px}
+  select{width:100%;max-width:100%;background:#1b1b1b;color:#fff;border:1px solid var(--line);padding:6px 7px;border-radius:2px;margin-top:3px}
+  .sec{font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:#6d6d6d;border-top:1px solid var(--line);
+    padding-top:9px;margin:12px 0 9px;display:flex;justify-content:space-between}
+  .seed{display:grid;grid-template-columns:1fr 96px;gap:6px;margin-top:6px}
+  input[type=number]{background:#1b1b1b;color:#fff;border:1px solid var(--line);padding:6px 7px;border-radius:2px;width:100%;-moz-appearance:textfield}
+  input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  button{background:#1b1b1b;color:#fff;border:1px solid var(--line);padding:6px 7px;border-radius:2px;cursor:pointer;transition:background .12s}
+  button:hover{background:#262626}
+  button:active{background:#333}
+  .time{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .time button.on{background:#e9f2ff;color:#12508f;border-color:#e9f2ff}
+  .hint{font-size:9px;color:#6d6d6d;line-height:1.45;margin:6px 0 0}
+  .hint i{color:#9a9a9a;font-style:normal}
+  .ramps{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px}
+  .ramps button{height:24px;padding:0;border:1px solid #333;border-radius:2px}
+  .ramps button[aria-pressed=true]{outline:1px solid #fff;outline-offset:2px}
+  .ramps button:hover{border-color:#777}
+  .exports{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+  .exports.wide{grid-template-columns:1fr}
+  .status{font-size:9.5px;color:#6d6d6d;margin-top:10px;font-variant-numeric:tabular-nums}
+  button:disabled{opacity:.35;cursor:not-allowed}
+  button:disabled:hover{background:#1b1b1b}
+  @media (max-width:820px){
+    main{grid-template-columns:1fr;min-height:0}
+    .stage{padding:12px 12px 4px}
+    .frame{width:100%}
+    .panel{max-height:none}
+    .stamp{position:static;text-align:center;margin:6px 0 10px}
+  }
+</style>
+</head>
+<body>
+<main>
+  <section class="stage">
+    <div class="frame"><canvas id="view" width="720" height="960" aria-label="Generated organic growth form"></canvas></div>
+    <div class="stamp" id="stamp">—</div>
+  </section>
+  <aside class="panel">
+    <h1>Growth instrument</h1>
+    <div class="sub">study 01 — after rohannewman</div>
+
+    <div class="row"><span>System</span><span></span></div>
+    <select id="system" aria-label="Growth system"></select>
+    <p class="hint"><i>live</i> changes growth from now on · <i>regrow</i> restarts from the seed</p>
+
+    <div class="sec"><span>Shape</span><span id="systemName">—</span></div>
+    <div id="params"></div>
+
+    <div class="sec"><span>Time</span><span></span></div>
+    <div class="time">
+      <button id="play" class="on" aria-pressed="true">Pause</button>
+      <button id="restart">Restart</button>
+    </div>
+    <div class="row" style="margin-top:12px"><span>Speed, steps per frame</span><b id="speedV">1</b></div>
+    <input type="range" id="speed" min="0" max="6" step="1" value="1" aria-label="Speed">
+    <div class="row"><span>Growth amount</span><b id="growthV">90%</b></div>
+    <input type="range" id="growth" min="5" max="100" step="1" value="90" aria-label="Growth amount">
+    <div class="row"><span>Seed</span><span></span></div>
+    <div class="seed">
+      <input type="number" id="seed" value="3574968473" aria-label="Seed">
+      <button id="newseed">New seed</button>
+    </div>
+
+    <div class="sec"><span>Appearance</span><span></span></div>
+    <select id="render" aria-label="Render mode">
+      <option value="dither">Dither</option>
+      <option value="solid">Solid</option>
+    </select>
+    <div class="row" style="margin-top:10px"><span>Dither</span><span></span></div>
+    <select id="dither" aria-label="Dither mode">
+      <option value="random">Random threshold</option>
+      <option value="bayer">Ordered 4×4</option>
+    </select>
+    <div class="row"><span>Cell size</span><b id="cellV">2px</b></div>
+    <input type="range" id="cell" min="2" max="8" step="2" value="2" aria-label="Cell size">
+    <div class="row"><span>Contrast</span><b id="contrastV">1.05</b></div>
+    <input type="range" id="contrast" min="0.6" max="2.2" step="0.05" value="1.05" aria-label="Contrast">
+    <div class="row"><span>Bands</span><b id="bandsV">6</b></div>
+    <input type="range" id="bands" min="0" max="16" step="1" value="6" aria-label="Bands, 0 is a smooth ramp">
+    <div class="row"><span>Volume contours</span><b id="contoursV">8</b></div>
+    <input type="range" id="contours" min="0" max="12" step="1" value="8" aria-label="Volume contour levels">
+    <div class="row"><span>Particles</span><span></span></div>
+    <select id="points" aria-label="Particle count">
+      <option value="grid">grid, 5 per cell</option>
+      <option value="25000">dense, 25k</option>
+      <option value="100000">dense, 100k</option>
+      <option value="400000">dense, 400k</option>
+    </select>
+    <div class="row" style="margin-top:9px"><span>Ramp</span><span id="rampName">violet</span></div>
+    <div class="ramps" id="ramps"></div>
+
+    <div class="sec"><span>Export</span><span></span></div>
+    <div class="exports">
+      <button id="png">PNG 2×</button>
+      <button id="svg">SVG</button>
+    </div>
+    <div class="exports">
+      <button id="glb" disabled title="Pause the growth, or let it finish, to build a volume">GLB 3D</button>
+      <button id="ascii" disabled title="Pause the growth, or let it finish, to build a volume">ASCII</button>
+    </div>
+    <div class="exports wide">
+      <button id="ply" disabled title="Pause the growth, or let it finish, to build a volume">PLY particles + contours</button>
+    </div>
+    <div class="status" id="status">step 0</div>
+    <div class="status" id="volume">volume locked · pause or finish</div>
+  </aside>
+</main>
+
+<script>
+"use strict";
+/* ---------- constants ---------- */
+const GW = 360, GH = 480;          // drawing units
+const OW = 720, OH = 960;          // output pixels
+const view = document.getElementById("view");
+const vctx = view.getContext("2d");
+
+const layer = document.createElement("canvas"); layer.width = GW; layer.height = GH;
+const lctx = layer.getContext("2d", { willReadFrequently: true });
+const small = document.createElement("canvas");
+const sctx = small.getContext("2d");
+
+const BAYER = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+
+const RAMPS = [
+  { id:"violet",  name:"Violet on paper", stops:["#f5f3f0","#e2b6f4","#af48e6","#3e0b56"] },
+  { id:"signal",  name:"Signal on black", stops:["#0e0e0e","#0a5a21","#00e13b","#d6ffe1"] },
+  { id:"acid",    name:"Acid heat",       stops:["#fbe000","#f3a91a","#fb6c2d","#0e0e0e"] },
+  { id:"duotone", name:"Violet to green", stops:["#af48e6","#7f6ef2","#22a0c9","#00e13b"] },
+  { id:"ink",     name:"Ink wash",        stops:["#f5f3f0","#c2bfb9","#6f6b66","#0e0e0e"] },
+  { id:"ember",   name:"Ember",           stops:["#0e0e0e","#6b1a08","#fb6c2d","#ffe6b0"] },
+  { id:"cyan",    name:"Electric blue",   stops:["#05101d","#1a00fc","#468ffb","#eaf4ff"] },
+  { id:"sunset",  name:"Sunset",          stops:["#1b0b2b","#af48e6","#fb6c2d","#fbe000"] },
+];
+
+// ramp look-up tables, sampled once per ramp with a canvas gradient
+const LUTS = new Map();
+function lut(id){
+  if (LUTS.has(id)) return LUTS.get(id);
+  const r = RAMPS.find(x=>x.id===id) || RAMPS[0];
+  const c = document.createElement("canvas"); c.width = 256; c.height = 1;
+  const x = c.getContext("2d");
+  const g = x.createLinearGradient(0,0,256,0);
+  r.stops.forEach((stop,i)=> g.addColorStop(i/(r.stops.length-1), stop));
+  x.fillStyle = g; x.fillRect(0,0,256,1);
+  const d = x.getImageData(0,0,256,1).data;
+  const t = new Uint8Array(768);
+  for (let i=0;i<256;i++){ t[i*3]=d[i*4]; t[i*3+1]=d[i*4+1]; t[i*3+2]=d[i*4+2]; }
+  LUTS.set(id, t);
+  return t;
+}
+
+const $ = (id) => document.getElementById(id);
+
+/* ---------- rng ---------- */
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/* ---------- state ---------- */
+const S = {
+  system:"diffgrowth", seed:3574968473, speed:1, growth:90,
+  render:"dither", dither:"random", cell:2, contrast:1.05, ramp:"violet", bands:6, contours:8, particles:5, points:"100000",
+  playing:true, steps:0, maxSteps:0, rev:0,
+};
+
+/* ---------- systems ---------- */
+const SYSTEMS = {};
+
+/* DLA */
+SYSTEMS.dla = {
+  label:"DLA",
+  base:2400,
+  params:[
+    { k:"sticking", label:"Sticking probability", min:1, max:100, step:1, value:30, unit:"%" },
+    { k:"particles", label:"Particles", min:200, max:4000, step:100, value:1800 },
+    { k:"walkers", label:"Walkers in flight", min:10, max:220, step:10, value:80 },
+    { k:"reach", label:"Reach", min:1, max:6, step:0.5, value:2.5 },
+    { k:"wander", label:"Wander", min:0, max:3, step:0.05, value:1 },
+  ],
+  init(s, p, rand){
+    s.rand = rand; s.pts = [{x:GW/2, y:GH/2}];
+    s.set = new Set(); s.set.add((GW/2|0)+","+(GH/2|0));
+    s.walkers = []; s.maxR = 8;
+  },
+  step(s, p){
+    if (s.pts.length >= p.particles){ s.walkers.length = 0; return true; }
+    const spawn = (w)=>{
+      const a = s.rand() * Math.PI * 2, r = s.maxR + 6;
+      w.x = GW/2 + Math.cos(a)*r; w.y = GH/2 + Math.sin(a)*r; w.life = 0;
+    };
+    while (s.walkers.length < p.walkers){
+      const w = { x:0, y:0, life:0 }; spawn(w); s.walkers.push(w);
+    }
+    for (let i = s.walkers.length - 1; i >= 0; i--){
+      const w = s.walkers[i];
+      // biased random walk, one unit per step
+      const a = Math.atan2(GH/2 - w.y, GW/2 - w.x) + (s.rand()-0.5) * 0.9 * p.wander;
+      w.x += Math.cos(a); w.y += Math.sin(a);
+      w.life++;
+      if (SYSTEMS.dla.hit(s, w.x, w.y, p.reach)){
+        if (s.rand() * 100 < p.sticking) SYSTEMS.dla.add(s, w.x, w.y);
+        spawn(w); continue;
+      }
+      if (w.life > 900 || w.x<1||w.y<1||w.x>GW-1||w.y>GH-1) spawn(w);
+    }
+    return s.pts.length >= p.particles;
+  },
+  hit(s,x,y,reach){
+    const gx = x|0, gy = y|0, r = Math.ceil(reach);
+    for (let i=-r;i<=r;i++) for (let j=-r;j<=r;j++){
+      if (s.set.has((gx+i)+","+(gy+j))) return true;
+    }
+    return false;
+  },
+  add(s,x,y){
+    s.pts.push({x,y}); s.set.add((x|0)+","+(y|0));
+    const d = Math.hypot(x-GW/2, y-GH/2);
+    if (d + 6 > s.maxR) s.maxR = d + 6;
+  },
+  draw(c, s, ink){
+    c.fillStyle = ink;
+    for (const q of s.pts) c.fillRect(q.x-1, q.y-1, 2.2, 2.2);
+  },
+  svg(s){
+    return s.pts.map(q=>`<circle cx="${q.x.toFixed(2)}" cy="${q.y.toFixed(2)}" r="0.7"/>`).join("");
+  },
+};
+
+/* PHYSARUM */
+SYSTEMS.physarum = {
+  label:"Physarum",
+  base:1300,
+  params:[
+    { k:"agents", label:"Agents", min:1000, max:9000, step:500, value:5000 },
+    { k:"sensor", label:"Sensor distance", min:3, max:18, step:0.5, value:9 },
+    { k:"angle", label:"Sensor angle", min:0.1, max:1.2, step:0.05, value:0.4 },
+    { k:"turn", label:"Turn angle", min:0.05, max:0.9, step:0.05, value:0.35 },
+    { k:"decay", label:"Decay", min:0.85, max:0.99, step:0.005, value:0.96 },
+    { k:"deposit", label:"Deposit", min:0.05, max:1, step:0.05, value:0.6 },
+  ],
+  init(s, p, rand){
+    s.rand = rand;
+    s.map = new Float32Array(GW*GH).fill(0);
+    s.buf = new Float32Array(GW*GH);
+    s.agents = [];
+    const r = Math.min(GW,GH) * 0.12;
+    for (let i=0;i<p.agents;i++){
+      const a = rand()*Math.PI*2, d = rand()*r;
+      s.agents.push({ x: GW/2+Math.cos(a)*d, y: GH/2+Math.sin(a)*d, a: rand()*Math.PI*2 });
+    }
+    s.img = lctx.createImageData(GW, GH);
+  },
+  step(s, p){
+    const m = s.map, b = s.buf;
+    const sd = p.sensor, sa = p.angle, turn = p.turn;
+    for (const ag of s.agents){
+      const sense = (ang)=>{
+        const x = ag.x + Math.cos(ang)*sd, y = ag.y + Math.sin(ang)*sd;
+        if (x<0||y<0||x>=GW||y>=GH) return -1;
+        return m[(x|0) + (y|0)*GW];
+      };
+      const f = sense(ag.a), l = sense(ag.a - sa), r = sense(ag.a + sa);
+      if (f >= l && f >= r) { /* straight */ }
+      else if (f < l && f < r) ag.a += (s.rand() < 0.5 ? -1 : 1) * turn * 2;
+      else if (l > r) ag.a -= turn; else ag.a += turn;
+      ag.x += Math.cos(ag.a); ag.y += Math.sin(ag.a);
+      if (ag.x<0) ag.x+=GW; if (ag.y<0) ag.y+=GH;
+      if (ag.x>=GW) ag.x-=GW; if (ag.y>=GH) ag.y-=GH;
+      const i = (ag.x|0) + (ag.y|0)*GW;
+      m[i] = Math.min(1, m[i] + p.deposit);
+    }
+    // diffuse + decay
+    for (let y=0;y<GH;y++){
+      const row = y*GW;
+      for (let x=0;x<GW;x++){
+        const i = row+x;
+        const l = m[i - (x>0?1:0)], rr = m[i + (x<GW-1?1:0)];
+        const u = m[i - (y>0?GW:0)], d = m[i + (y<GH-1?GW:0)];
+        b[i] = ((m[i]*4 + l + rr + u + d) / 8) * p.decay;
+      }
+    }
+    s.map.set(b);
+    return false;
+  },
+  draw(c, s, ink){
+    const d = s.img.data;
+    for (let i=0;i<GW*GH;i++){
+      const v = Math.min(1, s.map[i] * 1.9);
+      const o = i*4;
+      d[o]=0; d[o+1]=0; d[o+2]=0; d[o+3] = v*255;
+    }
+    if (!s.tmp){ s.tmp = document.createElement("canvas"); s.tmp.width = GW; s.tmp.height = GH; s.tmpCtx = s.tmp.getContext("2d"); }
+    s.tmpCtx.putImageData(s.img,0,0);
+    c.drawImage(s.tmp,0,0);
+  },
+  svg(){ return null; },
+};
+
+/* REACTION-DIFFUSION */
+SYSTEMS.rd = {
+  label:"Reaction-diffusion",
+  base:2200,
+  params:[
+    { k:"feed",  label:"Feed", min:0.01, max:0.08, step:0.001, value:0.046, unit:"" },
+    { k:"kill",  label:"Kill", min:0.03, max:0.075, step:0.001, value:0.0605 },
+    { k:"bdiff", label:"B diffusion", min:0.1, max:0.8, step:0.01, value:0.47 },
+    { k:"seedMode", label:"Seeds", type:"select", options:["scatter","centre","ring"], value:"scatter" },
+    { k:"iter", label:"Iterations per step", min:1, max:8, step:1, value:2 },
+  ],
+  init(s, p, rand){
+    s.rand = rand;
+    s.gw = GW/2; s.gh = GH/2;
+    const n = s.gw*s.gh;
+    s.A = new Float32Array(n).fill(1);
+    s.B = new Float32Array(n).fill(0);
+    s.nA = new Float32Array(n); s.nB = new Float32Array(n);
+    const put = (cx,cy,r)=>{
+      for (let y=cy-r;y<=cy+r;y++) for (let x=cx-r;x<=cx+r;x++){
+        if (x<0||y<0||x>=s.gw||y>=s.gh) continue;
+        if (Math.hypot(x-cx,y-cy) < r) s.B[x+y*s.gw] = 1;
+      }
+    };
+    if (p.seedMode === "centre") put(s.gw/2|0, s.gh/2|0, 12);
+    else if (p.seedMode === "ring"){
+      for (let i=0;i<90;i++){
+        const a = i/90*Math.PI*2, R = Math.min(s.gw,s.gh)*0.3;
+        put((s.gw/2+Math.cos(a)*R)|0, (s.gh/2+Math.sin(a)*R)|0, 3);
+      }
+    } else {
+      for (let i=0;i<60;i++) put((rand()*s.gw)|0, (rand()*s.gh)|0, 3);
+    }
+    s.img = lctx.createImageData(GW, GH);
+  },
+  step(s, p){
+    const {gw,gh,A,B,nA,nB} = s;
+    const f = p.feed, k = p.kill, dA = 0.2, dB = p.bdiff * 0.2;
+    for (let it=0; it<p.iter; it++){
+      for (let y=0;y<gh;y++){
+        const yo = y*gw, up = (y>0? y-1: y)*gw, dn = (y<gh-1? y+1: y)*gw;
+        for (let x=0;x<gw;x++){
+          const i = yo+x;
+          const l = x>0? i-1: i, r = x<gw-1? i+1: i;
+          const a = A[i], bb = B[i];
+          const lapA = A[l]+A[r]+A[up+x]+A[dn+x] - 4*a;
+          const lapB = B[l]+B[r]+B[up+x]+B[dn+x] - 4*bb;
+          const abb = a*bb*bb;
+          nA[i] = a + (dA*lapA - abb + f*(1-a));
+          nB[i] = bb + (dB*lapB + abb - (k+f)*bb);
+        }
+      }
+      A.set(nA); B.set(nB);
+    }
+    return false;
+  },
+  draw(c, s){
+    const d = s.img.data;
+    const {gw,gh,A,B} = s;
+    for (let y=0;y<GH;y++){
+      const sy = (y*gh/GH)|0;
+      for (let x=0;x<GW;x++){
+        const i = ((x*gw/GW)|0) + sy*gw;
+        const v = Math.min(1, Math.max(0, (A[i]-B[i]) * 1.4));
+        const o = ((y*GW)+x)*4;
+        d[o]=0; d[o+1]=0; d[o+2]=0; d[o+3] = (1-v)*255;
+      }
+    }
+    if (!s.tmp){ s.tmp = document.createElement("canvas"); s.tmp.width = GW; s.tmp.height = GH; s.tmpCtx = s.tmp.getContext("2d"); }
+    s.tmpCtx.putImageData(s.img,0,0);
+    c.drawImage(s.tmp,0,0);
+  },
+  svg(){ return null; },
+};
+
+/* DIFFERENTIAL GROWTH */
+SYSTEMS.diffgrowth = {
+  label:"Differential growth",
+  base:1600,
+  params:[
+    { k:"repel", label:"Repulsion radius", min:1.2, max:9, step:0.1, value:2.2 },
+    { k:"attract", label:"Edge attraction", min:0.01, max:0.3, step:0.01, value:0.07 },
+    { k:"maxLen", label:"Max segment", min:2, max:14, step:0.5, value:3.2 },
+    { k:"noise", label:"Wander", min:0, max:1, step:0.02, value:0.35 },
+    { k:"maxPoints", label:"Max points", min:150, max:4000, step:50, value:2500 },
+    { k:"fill", label:"Fill the loop", type:"select", options:["outline","fill"], value:"outline" },
+  ],
+  init(s, p, rand){
+    s.rand = rand; s.nodes = [];
+    const R = Math.min(GW,GH) * 0.30;
+    const n = 60;
+    for (let i=0;i<n;i++){
+      const a = i/n*Math.PI*2;
+      // uneven start: a perfect circle is a stable minimum and never folds
+      const k = 1 + (rand()-0.5) * 0.7;
+      s.nodes.push({ x: GW/2+Math.cos(a)*R*k, y: GH/2+Math.sin(a)*R*k });
+    }
+  },
+  step(s, p){
+    const nodes = s.nodes, r2 = p.repel*p.repel;
+    // repulsion via spatial hash
+    const cell = Math.max(2, p.repel);
+    const buckets = new Map();
+    const key = (x,y)=>((x/cell)|0)+","+((y/cell)|0);
+    for (let i=0;i<nodes.length;i++){
+      const k = key(nodes[i].x, nodes[i].y);
+      let b = buckets.get(k); if (!b) buckets.set(k, b=[]); b.push(i);
+    }
+    const push = new Float32Array(nodes.length*2);
+    for (let i=0;i<nodes.length;i++){
+      const p1 = nodes[i];
+      const bx = (p1.x/cell)|0, by = (p1.y/cell)|0;
+      for (let ox=-1;ox<=1;ox++) for (let oy=-1;oy<=1;oy++){
+        const b = buckets.get((bx+ox)+","+(by+oy)); if (!b) continue;
+        for (const j of b){
+          if (j <= i) continue;
+          const p2 = nodes[j];
+          let dx = p2.x-p1.x, dy = p2.y-p1.y;
+          const d2 = dx*dx+dy*dy;
+          if (d2 > r2 || d2 < 1e-9) continue;
+          const d = Math.sqrt(d2), push_ = (p.repel - d) * 0.5;
+          dx/=d; dy/=d;
+          push[i*2] -= dx*push_; push[i*2+1] -= dy*push_;
+          push[j*2] += dx*push_; push[j*2+1] += dy*push_;
+        }
+      }
+    }
+    for (let i=0;i<nodes.length;i++){
+      const n1 = nodes[(i-1+nodes.length)%nodes.length];
+      const n2 = nodes[(i+1)%nodes.length];
+      const mx = (n1.x+n2.x)*0.5, my = (n1.y+n2.y)*0.5;
+      nodes[i].x += (mx - nodes[i].x) * p.attract;
+      nodes[i].y += (my - nodes[i].y) * p.attract;
+      nodes[i].x += push[i*2] + (s.rand()-0.5)*p.noise*0.85;
+      nodes[i].y += push[i*2+1] + (s.rand()-0.5)*p.noise*0.85;
+      // soft bounds
+      const m = 6;
+      if (nodes[i].x < m) nodes[i].x += (m - nodes[i].x) * 0.5;
+      if (nodes[i].y < m) nodes[i].y += (m - nodes[i].y) * 0.5;
+      if (nodes[i].x > GW-m) nodes[i].x -= (nodes[i].x - (GW-m)) * 0.5;
+      if (nodes[i].y > GH-m) nodes[i].y -= (nodes[i].y - (GH-m)) * 0.5;
+    }
+    // subdivide long edges
+    if (nodes.length < p.maxPoints){
+      const out = [];
+      for (let i=0;i<nodes.length;i++){
+        const a = nodes[i], b = nodes[(i+1)%nodes.length];
+        out.push(a);
+        const dx = b.x-a.x, dy = b.y-a.y, d = Math.hypot(dx,dy);
+        if (d > p.maxLen && out.length < p.maxPoints){
+          const nx = -dy/d, ny = dx/d, j = (s.rand()-0.5)*p.noise*2;
+          out.push({ x:(a.x+b.x)/2 + nx*j, y:(a.y+b.y)/2 + ny*j });
+        }
+      }
+      s.nodes = nodes.length ? out : nodes;
+      if (s.nodes.length > p.maxPoints) s.nodes.length = p.maxPoints;
+    }
+    return s.nodes.length >= p.maxPoints - 1;
+  },
+  draw(c, s, ink, p){
+    const n = s.nodes; if (n.length < 3) return;
+    // midpoint quadratics: the reference line is smooth, never polygonal
+    c.beginPath();
+    const at = (i)=>n[(i+n.length)%n.length];
+    c.moveTo((at(0).x+at(1).x)/2, (at(0).y+at(1).y)/2);
+    for (let i=1;i<=n.length;i++){
+      const q = at(i), nx = at(i+1);
+      c.quadraticCurveTo(q.x, q.y, (q.x+nx.x)/2, (q.y+nx.y)/2);
+    }
+    c.closePath();
+    if (p && p.fill === "fill"){ c.fillStyle = ink; c.fill(); return; }
+    c.strokeStyle = ink; c.lineWidth = 1.1; c.lineJoin="round"; c.stroke();
+  },
+  svg(s){
+    const n = s.nodes;
+    if (n.length < 3) return "";
+    const filled = (paramMap().fill === "fill");
+    return `<polygon points="${n.map(q=>q.x.toFixed(2)+","+q.y.toFixed(2)).join(" ")}" fill="${filled ? "url(#g)" : "none"}" stroke-width="1.1"/>`;
+  },
+};
+
+/* SPACE COLONISATION */
+SYSTEMS.spacecol = {
+  label:"Space colonisation",
+  base:420,
+  params:[
+    { k:"attractors", label:"Attractors", min:50, max:900, step:10, value:350 },
+    { k:"influence", label:"Influence radius", min:10, max:90, step:1, value:46 },
+    { k:"kill", label:"Kill radius", min:1, max:14, step:0.5, value:4 },
+    { k:"len", label:"Step length", min:1, max:10, step:0.5, value:3 },
+    { k:"bias", label:"Bias", min:0, max:1, step:0.05, value:0.15 },
+  ],
+  init(s, p, rand){
+    s.rand = rand; s.nodes = [{x:GW/2, y:GH/2, parent:-1}];
+    s.att = [];
+    for (let i=0;i<p.attractors;i++){
+      const a = rand()*Math.PI*2, r = Math.sqrt(rand()) * Math.min(GW,GH)*0.42;
+      s.att.push({ x: GW/2+Math.cos(a)*r, y: GH/2+Math.sin(a)*r, hit:false });
+    }
+  },
+  step(s, p){
+    const pulls = new Map();
+    for (const a of s.att){
+      if (a.hit) continue;
+      let best = -1, bd = p.influence*p.influence;
+      for (let i=0;i<s.nodes.length;i++){
+        const nd = s.nodes[i];
+        const d2 = (nd.x-a.x)**2 + (nd.y-a.y)**2;
+        if (d2 < bd){ bd = d2; best = i; }
+      }
+      if (best >= 0){
+        const arr = pulls.get(best); if (arr) arr.push(a); else pulls.set(best, [a]);
+      }
+    }
+    for (const [i, list] of pulls){
+      let dx=0, dy=0;
+      for (const a of list){ dx += a.x - s.nodes[i].x; dy += a.y - s.nodes[i].y; }
+      const d = Math.hypot(dx,dy) || 1;
+      dx /= d; dy /= d;
+      const nd = { x: s.nodes[i].x + dx*p.len, y: s.nodes[i].y + dy*p.len, parent:i };
+      const jx = (s.rand()-0.5)*p.bias*p.len, jy = (s.rand()-0.5)*p.bias*p.len;
+      nd.x += jx; nd.y += jy;
+      if (nd.x < 2 || nd.y < 2 || nd.x > GW-2 || nd.y > GH-2) continue;
+      s.nodes.push(nd);
+    }
+    for (const a of s.att){
+      if (a.hit) continue;
+      for (const nd of s.nodes){
+        if ((nd.x-a.x)**2 + (nd.y-a.y)**2 < p.kill*p.kill){ a.hit = true; break; }
+      }
+    }
+    return s.att.every(a=>a.hit);
+  },
+  draw(c, s, ink){
+    c.strokeStyle = ink; c.lineWidth = 1.2; c.lineCap="round";
+    c.beginPath();
+    for (const n of s.nodes){
+      if (n.parent < 0) continue;
+      const p = s.nodes[n.parent];
+      c.moveTo(p.x,p.y); c.lineTo(n.x,n.y);
+    }
+    c.stroke();
+  },
+  svg(s){
+    return s.nodes.filter(n=>n.parent>=0).map(n=>{
+      const p = s.nodes[n.parent];
+      return `<line x1="${p.x.toFixed(2)}" y1="${p.y.toFixed(2)}" x2="${n.x.toFixed(2)}" y2="${n.y.toFixed(2)}"/>`;
+    }).join("");
+  },
+};
+
+/* ---------- build panel ---------- */
+const sysSel = $("system");
+for (const [k,v] of Object.entries(SYSTEMS)){
+  const o = document.createElement("option"); o.value = k; o.textContent = v.label; sysSel.append(o);
+}
+sysSel.value = S.system;
+
+function buildParams(){
+  const sys = SYSTEMS[S.system];
+  const host = $("params"); host.innerHTML = "";
+  sys.params.forEach((p) => {
+    const row = document.createElement("div");
+    row.className = "row";
+    const lab = document.createElement("span"); lab.textContent = p.label;
+    const val = document.createElement("b");
+    row.append(lab, val);
+    host.append(row);
+    if (p.type === "select"){
+      const sel = document.createElement("select");
+      p.options.forEach(o=>{ const op=document.createElement("option"); op.value=o; op.textContent=o; sel.append(op); });
+      sel.value = p.value; sel.dataset.k = p.k;
+      sel.addEventListener("change", ()=>{ p.value = sel.value; regrow(); });
+      host.append(sel);
+    } else {
+      const inp = document.createElement("input");
+      inp.type = "range"; inp.min = p.min; inp.max = p.max; inp.step = p.step; inp.value = p.value;
+      inp.dataset.k = p.k;
+      val.textContent = fmt(p.value, p.unit);
+      inp.addEventListener("input", ()=>{
+        p.value = parseFloat(inp.value);
+        val.textContent = fmt(p.value, p.unit);
+        regrow();
+      });
+      host.append(inp);
+    }
+  });
+  $("systemName").textContent = sys.label.toUpperCase();
+}
+function fmt(v, unit){
+  const s = Number.isInteger(v) ? v : v.toFixed(v < 1 ? 3 : 2).replace(/0+$/,"").replace(/\.$/,"");
+  return unit ? s + unit : s;
+}
+
+/* ---------- ramps ---------- */
+const rampHost = $("ramps");
+RAMPS.forEach((r)=>{
+  const b = document.createElement("button");
+  b.type = "button";
+  b.dataset.ramp = r.id;
+  b.title = r.name;
+  b.setAttribute("aria-label", r.name);
+  b.setAttribute("aria-pressed", String(r.id===S.ramp));
+  b.style.background = `linear-gradient(90deg, ${r.stops.join(",")})`;
+  b.addEventListener("click", ()=>{
+    S.ramp = r.id;
+    [...rampHost.children].forEach(c=>c.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed","true");
+    $("rampName").textContent = r.id;
+    permalink(); draw();
+  });
+  rampHost.append(b);
+});
+
+/* ---------- run ---------- */
+let state = null;
+
+function ramp(){ return RAMPS.find(r=>r.id===S.ramp) || RAMPS[0]; }
+
+function regrow(){
+  const rand = mulberry32(S.seed >>> 0);
+  state = {};
+  const p = paramMap();
+  SYSTEMS[S.system].init(state, p, rand);
+  S.rev++; S.steps = 0;
+  S.maxSteps = Math.round(SYSTEMS[S.system].base * (S.growth/100));
+  draw();
+  updateStatus();
+}
+
+function paramMap(){
+  const o = {};
+  for (const p of SYSTEMS[S.system].params) o[p.k] = p.value;
+  return o;
+}
+
+function setPlaying(v){
+  S.playing = v;
+  const b = $("play");
+  b.textContent = v ? "Pause" : "Play";
+  b.classList.toggle("on", v);
+  b.setAttribute("aria-pressed", String(v));
+  refreshExports();
+}
+
+function tick(){
+  if (!S.playing) return;
+  const sys = SYSTEMS[S.system], p = paramMap();
+  let finished = false;
+  for (let i=0;i<S.speed && S.steps<S.maxSteps;i++){
+    if (sys.step(state, p)) finished = true;
+    S.steps++;
+    if (finished) break;
+  }
+  // a finished form stops on its own, which also unlocks the volume exports
+  if (finished || S.steps >= S.maxSteps) setPlaying(false);
+  draw();
+  updateStatus();
+}
+
+let lastKey = "";
+function draw(){
+  if (!state) return;
+  const key = [S.rev, S.steps, S.system, S.ramp, S.bands, S.cell, S.contrast,
+               S.dither, S.render].join("|");
+  if (key === lastKey) return;          // nothing changed: keep the last frame
+  lastKey = key;
+  const p = paramMap();
+  lctx.clearRect(0,0,GW,GH);
+  SYSTEMS[S.system].draw(lctx, state, "#fff", p);
+
+  const table = lut(S.ramp);
+  const bands = S.render === "solid" ? 0 : S.bands;
+  const sx = Math.max(1, Math.round(S.cell/2));
+  const cols = Math.floor(GW/sx), rows = Math.floor(GH/sx);
+  small.width = cols; small.height = rows;
+  const img = sctx.createImageData(cols, rows);
+  const data = img.data;
+  const src = lctx.getImageData(0,0,GW,GH).data;
+  const rnd = mulberry32(0x9e3779b9);
+  const inv = bands >= 2 ? 1/(bands-1) : 0;
+
+  for (let by=0;by<rows;by++){
+    for (let bx=0;bx<cols;bx++){
+      let sum = 0;
+      for (let y=0;y<sx;y++){
+        const row = (by*sx+y)*GW;
+        for (let x=0;x<sx;x++) sum += src[(row + bx*sx + x)*4 + 3];
+      }
+      let a = sum / (sx*sx*255);
+      a = (a - 0.5) * S.contrast + 0.5;
+      if (a < 0) a = 0; else if (a > 1) a = 1;
+      // dither the position between ramp bands, not the colour
+      let v = a;
+      if (bands >= 2){
+        const t = S.dither === "bayer"
+          ? BAYER[(by%4)*4 + (bx%4)] / 16
+          : rnd();
+        v = Math.floor(a * (bands-1) + t) * inv;
+        if (v > 1) v = 1;
+      }
+      const i = (v * 255) | 0;
+      const o = (by*cols + bx) * 4;
+      data[o]   = table[i*3];
+      data[o+1] = table[i*3+1];
+      data[o+2] = table[i*3+2];
+      data[o+3] = 255;
+    }
+  }
+  sctx.putImageData(img,0,0);
+  vctx.imageSmoothingEnabled = S.render === "solid";
+  vctx.drawImage(small,0,0,OW,OH);
+}
+
+function hex(h){
+  return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+}
+
+function updateStatus(){
+  $("status").textContent = `step ${S.steps} / ${S.maxSteps}`;
+  refreshExports();
+  $("stamp").textContent = `${SYSTEMS[S.system].label.toLowerCase()} · ${S.ramp} · seed ${S.seed} · step ${S.steps}`;
+}
+
+function permalink(){
+  const u = new URL(location.href);
+  u.searchParams.set("s", S.system);
+  u.searchParams.set("seed", S.seed);
+  u.searchParams.set("g", S.growth);
+  u.searchParams.set("pal", S.ramp);
+  u.searchParams.set("bands", S.bands);
+  u.searchParams.set("contours", S.contours);
+  u.searchParams.set("points", S.points);
+  history.replaceState(null, "", u);
+}
+
+/* ---------- volume ---------- */
+// The 2D print is a density field. Thickness follows density, so one volume
+// carries the picture and its relief. Pause or finish first; the mesh is frozen.
+const VOL = { nx:44, ny:58, nz:14 };
+const GLYPHS = " .:-=+*#%@";
+
+function coverage(){
+  const { nx, ny } = VOL;
+  const src = lctx.getImageData(0, 0, GW, GH).data;
+  const d = new Float32Array(nx*ny);
+  const bx = GW/nx, by = GH/ny;
+  for (let y=0; y<ny; y++){
+    const y0 = Math.floor(y*by), y1 = Math.max(y0+1, Math.floor((y+1)*by));
+    for (let x=0; x<nx; x++){
+      const x0 = Math.floor(x*bx), x1 = Math.max(x0+1, Math.floor((x+1)*bx));
+      let sum = 0, n = 0;
+      for (let yy=y0; yy<y1; yy++){
+        const row = yy*GW;
+        for (let xx=x0; xx<x1; xx++){ sum += src[(row+xx)*4 + 3]; n++; }
+      }
+      d[y*nx + x] = n ? sum/(n*255) : 0;
+    }
+  }
+  return d;
+}
+
+function buildVolume(){
+  const { nx, ny, nz } = VOL;
+  const d = coverage();
+  // one soft pass: a hairline stroke becomes a continuous ridge, not loose columns
+  const blur = new Float32Array(d.length);
+  for (let y=0; y<ny; y++){
+    for (let x=0; x<nx; x++){
+      let sum = 0, w = 0;
+      for (let oy=-1; oy<=1; oy++){
+        const yy = y+oy; if (yy<0 || yy>=ny) continue;
+        for (let ox=-1; ox<=1; ox++){
+          const xx = x+ox; if (xx<0 || xx>=nx) continue;
+          const k = (ox===0 && oy===0) ? 2 : 1;
+          sum += d[yy*nx+xx]*k; w += k;
+        }
+      }
+      blur[y*nx+x] = sum/w;
+    }
+  }
+  d.set(blur);
+  // rank equalisation: every form gets the full thickness range, whatever its coverage
+  // curve looks like, so a hairline ribbon and a saturated field both sculpt
+  const BINS = 64, hist = new Int32Array(BINS);
+  let used = 0;
+  for (let i=0; i<d.length; i++){
+    if (d[i] <= 0.01) continue;
+    hist[Math.min(BINS-1, (d[i]*BINS)|0)]++; used++;
+  }
+  const cdf = new Float32Array(BINS);
+  let acc = 0;
+  for (let b=0; b<BINS; b++){ acc += hist[b]; cdf[b] = used ? acc/used : 0; }
+  for (let i=0; i<d.length; i++){
+    if (d[i] <= 0.01){ d[i] = 0; continue; }
+    const b = Math.min(BINS-1, (d[i]*BINS)|0);
+    d[i] = cdf[b];
+  }
+  const occ = new Uint8Array(nx*ny*nz);
+  const thick = new Uint8Array(nx*ny);
+  const band = new Uint8Array(nx*ny);
+  const edge = new Uint8Array(nx*ny);      // 1 where the column sits on an iso level
+  const tu = new Float32Array(nx*ny);      // unrounded thickness, for dense sampling
+  const levels = Math.max(0, Math.round(S.contours));
+  const bandWidth = levels > 0 ? nz/levels : 0;
+  let voxels = 0;
+  const mid = (nz-1)/2;
+  for (let y=0; y<ny; y++){
+    for (let x=0; x<nx; x++){
+      // floor the field so paper stays empty and only the form carries thickness
+      const d0 = Math.max(0, (d[y*nx+x] - 0.06) / 0.94);
+      const u = nz * Math.pow(d0, 0.85);       // unrounded thickness
+      tu[y*nx+x] = u;
+      const t = Math.round(u * 0.98);
+      thick[y*nx+x] = t;
+      if (levels > 0 && u > 0.4){
+        const pos = u / bandWidth;
+        const frac = pos - Math.floor(pos);
+        band[y*nx+x] = Math.min(levels, Math.floor(pos));
+        // a real iso line, not any band change
+        edge[y*nx+x] = Math.min(frac, 1 - frac) < 0.16 ? 1 : 0;
+      }
+      if (t <= 0) continue;
+      for (let z=0; z<nz; z++){
+        if (Math.abs(z-mid) <= t/2){ occ[(z*ny + y)*nx + x] = 1; voxels++; }
+      }
+    }
+  }
+  return { nx, ny, nz, d, occ, voxels, thick, band, edge, tu };
+}
+
+const FACES = [
+  { n:[ 1,0,0], q:[[1,0,0],[1,1,0],[1,1,1],[1,0,1]] },
+  { n:[-1,0,0], q:[[0,0,0],[0,0,1],[0,1,1],[0,1,0]] },
+  { n:[0, 1,0], q:[[0,1,0],[0,1,1],[1,1,1],[1,1,0]] },
+  { n:[0,-1,0], q:[[0,0,0],[1,0,0],[1,0,1],[0,0,1]] },
+  { n:[0,0, 1], q:[[0,0,1],[1,0,1],[1,1,1],[0,1,1]] },
+  { n:[0,0,-1], q:[[0,0,0],[0,1,0],[1,1,0],[1,0,0]] },
+];
+
+function meshVolume(vol){
+  const { nx, ny, nz, occ, d, edge } = vol;
+  const table = lut(S.ramp);
+  const rampEnd = RAMPS.find(r=>r.id===S.ramp) || RAMPS[0];
+  const ground = hex(rampEnd.stops[0]);          // contour lines take the ramp's ground colour
+  const pos = [], nor = [], col = [], idx = [];
+  const scale = 1/ny;              // about one unit tall
+  const cx = (nx-1)/2, cy = (ny-1)/2, cz = (nz-1)/2;
+  let quads = 0, contourQuads = 0;
+
+  const at = (x,y,z)=> (x<0||y<0||z<0||x>=nx||y>=ny||z>=nz) ? 0 : occ[(z*ny+y)*nx+x];
+  const onContour = (x,y)=> edge[y*nx+x] === 1;
+
+  for (let z=0; z<nz; z++){
+    for (let y=0; y<ny; y++){
+      for (let x=0; x<nx; x++){
+        if (!occ[(z*ny+y)*nx+x]) continue;
+        const cellDens = d[y*nx+x];
+        const ci = Math.min(255, Math.max(0, Math.round(cellDens*255)));
+        let r = table[ci*3], g = table[ci*3+1], b = table[ci*3+2];
+        for (const f of FACES){
+          if (at(x+f.n[0], y+f.n[1], z+f.n[2])) continue;
+          // horizontal faces carry the contour; walls stay gradient
+          const horizontal = f.n[2] !== 0;
+          const line = horizontal && onContour(x, y);
+          if (line){ r = ground[0]; g = ground[1]; b = ground[2]; }
+          const base = pos.length/3;
+          // volume (x,y,z) -> glTF (x, z, y): plate in XZ, up on Y
+          for (const c of f.q){
+            const vx = ((x+c[0]) - cx) * scale;
+            const vy = ((z+c[2]) - cz) * scale;
+            const vz = ((y+c[1]) - cy) * scale;
+            pos.push(vx, vy, vz);
+            nor.push(f.n[0], f.n[2], f.n[1]);
+            col.push(r, g, b, 255);
+          }
+          // wind the quad so its front face agrees with the normal
+          const p0 = [pos[base*3], pos[base*3+1], pos[base*3+2]];
+          const p1 = [pos[base*3+3], pos[base*3+4], pos[base*3+5]];
+          const p2 = [pos[base*3+6], pos[base*3+7], pos[base*3+8]];
+          const ux = p1[0]-p0[0], uy = p1[1]-p0[1], uz = p1[2]-p0[2];
+          const wx = p2[0]-p0[0], wy = p2[1]-p0[1], wz = p2[2]-p0[2];
+          const nxv = uy*wz-uz*wy, nyv = uz*wx-ux*wz, nzv = ux*wy-uy*wx;
+          const flip = (nxv*f.n[0] + nyv*f.n[2] + nzv*f.n[1]) < 0;
+          if (flip) idx.push(base, base+2, base+1, base, base+3, base+2);
+          else      idx.push(base, base+1, base+2, base, base+2, base+3);
+          quads++;
+          if (line) contourQuads++;
+        }
+      }
+    }
+  }
+  return {
+    pos: new Float32Array(pos), nor: new Float32Array(nor),
+    col: new Uint8Array(col), idx: new Uint32Array(idx),
+    quads, contourQuads,
+  };
+}
+
+function pad4(n){ return (n + 3) & ~3; }
+
+function glbBytes(vol, mesh){
+  const { pos, nor, col, idx } = mesh;
+  const parts = [];
+  let offset = 0;
+  const push = (typed) => {
+    const bytes = new Uint8Array(typed.buffer, typed.byteOffset, typed.byteLength);
+    parts.push({ bytes, offset });
+    const start = offset;
+    offset += pad4(bytes.byteLength);
+    return start;
+  };
+  const vPos = push(pos), vNor = push(nor), vCol = push(col), vIdx = push(idx);
+  const binLength = offset;
+  const bin = new Uint8Array(binLength);
+  for (const p of parts) bin.set(p.bytes, p.offset);
+
+  const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+  for (let i=0; i<pos.length; i+=3){
+    for (let k=0; k<3; k++){
+      if (pos[i+k] < min[k]) min[k] = pos[i+k];
+      if (pos[i+k] > max[k]) max[k] = pos[i+k];
+    }
+  }
+
+  const count = pos.length/3;
+  const gltf = {
+    asset: { version: "2.0", generator: "growth instrument" },
+    scene: 0,
+    scenes: [{ nodes: [0] }],
+    nodes: [{ mesh: 0, name: `${S.system}-${S.seed}-${S.steps}` }],
+    meshes: [{ primitives: [{
+      attributes: { POSITION: 0, NORMAL: 1, COLOR_0: 2 },
+      indices: 3, material: 0, mode: 4,
+    }] }],
+    materials: [{
+      name: S.ramp,
+      pbrMetallicRoughness: { baseColorFactor: [1,1,1,1], metallicFactor: 0, roughnessFactor: 0.82 },
+      doubleSided: false,
+    }],
+    accessors: [
+      { bufferView: 0, componentType: 5126, count, type: "VEC3", min, max },
+      { bufferView: 1, componentType: 5126, count, type: "VEC3" },
+      { bufferView: 2, componentType: 5121, count, type: "VEC4", normalized: true },
+      { bufferView: 3, componentType: 5125, count: idx.length, type: "SCALAR" },
+    ],
+    bufferViews: [
+      { buffer: 0, byteOffset: vPos, byteLength: pos.byteLength, target: 34962 },
+      { buffer: 0, byteOffset: vNor, byteLength: nor.byteLength, target: 34962 },
+      { buffer: 0, byteOffset: vCol, byteLength: col.byteLength, target: 34962 },
+      { buffer: 0, byteOffset: vIdx, byteLength: idx.byteLength, target: 34963 },
+    ],
+    buffers: [{ byteLength: binLength }],
+  };
+
+  const enc = new TextEncoder();
+  let json = enc.encode(JSON.stringify(gltf));
+  if (json.byteLength % 4){                       // pad JSON with spaces
+    const padded = new Uint8Array(pad4(json.byteLength)).fill(0x20);
+    padded.set(json); json = padded;
+  }
+  const total = 12 + 8 + json.byteLength + 8 + binLength;
+  const out = new ArrayBuffer(total);
+  const dv = new DataView(out);
+  const u8 = new Uint8Array(out);
+  let o = 0;
+  dv.setUint32(o, 0x46546c67, true); o += 4;      // glTF
+  dv.setUint32(o, 2, true); o += 4;
+  dv.setUint32(o, total, true); o += 4;
+  dv.setUint32(o, json.byteLength, true); o += 4;
+  dv.setUint32(o, 0x4e4f534a, true); o += 4;      // JSON
+  u8.set(json, o); o += json.byteLength;
+  dv.setUint32(o, binLength, true); o += 4;
+  dv.setUint32(o, 0x004e4942, true); o += 4;      // BIN
+  u8.set(bin, o);
+  return out;
+}
+
+function volumeASCII(vol){
+  const { nx, ny, nz, occ, d } = vol;
+  const mid = (nz-1)/2;
+  const head = [
+    "GROWTH INSTRUMENT · VOLUME",
+    "system   " + SYSTEMS[S.system].label,
+    "seed     " + S.seed,
+    "step     " + S.steps + " / " + S.maxSteps,
+    "ramp     " + S.ramp,
+    "grid     " + nx + " x " + ny + " x " + nz + " (x, y, z)",
+    "voxels   " + vol.voxels,
+    "glyphs   " + GLYPHS,
+    "",
+    "Each slice is one z layer, lit from the middle of the volume.",
+  ].join("\n");
+  const out = [head];
+  for (let z=0; z<nz; z++){
+    const shade = 1 - Math.abs(z-mid)/Math.max(1, mid*1.3);
+    out.push("");
+    out.push("--- z " + String(z).padStart(2,"0") + " / " + (nz-1) + " ---");
+    for (let y=0; y<ny; y++){
+      let row = "";
+      for (let x=0; x<nx; x++){
+        const inside = occ[(z*ny+y)*nx+x];
+        const dens = d[y*nx+x];
+        const t = ((BAYER[(y%4)*4 + (x%4)] + 0.5)/16 - 0.5) * 0.18;
+        const v = inside ? Math.min(1, Math.max(0, dens*0.95 + (shade - 0.62)*0.3 + t)) : 0;
+        row += GLYPHS[Math.min(GLYPHS.length-1, Math.max(0, Math.round(v*(GLYPHS.length-1))))];
+      }
+      out.push(row.replace(/\s+$/, ""));
+    }
+  }
+  return out.join("\n") + "\n";
+}
+
+function buildPoints(vol){
+  const { nx, ny, d, thick, tu, band, edge } = vol;
+  const table = lut(S.ramp);
+  const rampDef = RAMPS.find(r=>r.id===S.ramp) || RAMPS[0];
+  const ground = hex(rampDef.stops[0]);
+  const scale = 1/ny;
+  const cx = (nx-1)/2, cy = (ny-1)/2;
+  const rnd = mulberry32((S.seed ^ Math.imul(S.steps + 1, 2654435761)) >>> 0);
+
+  const dense = S.points !== "grid";
+  const per = Math.max(1, Math.round(S.particles));
+  const cap = dense ? Math.max(1, Math.round(+S.points)) : nx*ny*per*2;
+
+  const P = {
+    n: 0, cap, dense,
+    x: new Float32Array(cap), y: new Float32Array(cap), z: new Float32Array(cap),
+    nx: new Float32Array(cap), ny: new Float32Array(cap), nz: new Float32Array(cap),
+    r: new Uint8Array(cap), g: new Uint8Array(cap), b: new Uint8Array(cap),
+    size: new Float32Array(cap), glyph: new Uint8Array(cap),
+    band: new Uint8Array(cap), dens: new Float32Array(cap),
+  };
+  const push = (px, py, pz, sxn, syn, szn, cr, cg, cb, size, glyph, bnd, dn)=>{
+    if (P.n >= P.cap) return;
+    const i = P.n++;
+    P.x[i] = px; P.y[i] = py; P.z[i] = pz;
+    P.nx[i] = sxn; P.ny[i] = syn; P.nz[i] = szn;
+    P.r[i] = cr; P.g[i] = cg; P.b[i] = cb;
+    P.size[i] = size; P.glyph[i] = glyph; P.band[i] = bnd; P.dens[i] = dn;
+  };
+
+  if (dense){
+    // weighted sampling of the continuous field: one particle per pick, two shells
+    const cells = [];
+    let total = 0;
+    for (let i=0; i<nx*ny; i++) if (tu[i] > 0.4){ cells.push(i); total += d[i]; }
+    if (!cells.length) return P;
+    const cdf = new Float32Array(cells.length);
+    let acc = 0;
+    for (let k=0; k<cells.length; k++){ acc += d[cells[k]]; cdf[k] = acc; }
+    const half = Math.max(1, Math.floor(cap/2));
+    for (let i=0; i<half; i++){
+      const r = rnd()*acc;
+      let lo = 0, hi = cdf.length-1;
+      while (lo < hi){ const mid = (lo+hi)>>1; if (cdf[mid] < r) lo = mid+1; else hi = mid; }
+      const c = cells[lo];
+      const x = c % nx, y = (c/nx)|0;
+      const dn = d[c];
+      const isEdge = edge[c] === 1;
+      const cr = isEdge ? ground[0] : table[(Math.min(255,Math.round(dn*255)))*3];
+      const cg = isEdge ? ground[1] : table[(Math.min(255,Math.round(dn*255)))*3+1];
+      const cb = isEdge ? ground[2] : table[(Math.min(255,Math.round(dn*255)))*3+2];
+      const jx = (rnd()-0.5)*0.92, jy = (rnd()-0.5)*0.92, jz = (rnd()-0.5)*0.16;
+      const px = (x + 0.5 + jx - cx) * scale;
+      const py = (y + 0.5 + jy - cy) * scale;
+      const size = 0.0016 + dn*0.0028;
+      const glyph = Math.min(9, Math.round(dn*9));
+      const zg = (tu[c]/2 + jz) * scale;
+      push(px, py,  zg, 0, 0,  1, cr, cg, cb, size, glyph, band[c], dn);
+      push(px, py, -zg, 0, 0, -1, cr, cg, cb, size, glyph, band[c], dn);
+    }
+    return P;
+  }
+
+  for (let y=0; y<ny; y++){
+    for (let x=0; x<nx; x++){
+      const t = thick[y*nx+x];
+      if (t <= 0) continue;
+      const dn = d[y*nx+x];
+      const isEdge = edge[y*nx+x] === 1;
+      const cr = isEdge ? ground[0] : table[(Math.min(255,Math.round(dn*255)))*3];
+      const cg = isEdge ? ground[1] : table[(Math.min(255,Math.round(dn*255)))*3+1];
+      const cb = isEdge ? ground[2] : table[(Math.min(255,Math.round(dn*255)))*3+2];
+      const count = Math.max(1, Math.round(dn * per));
+      for (let k=0; k<count; k++){
+        const jx = (rnd()-0.5)*0.86, jy = (rnd()-0.5)*0.86;
+        const px = (x + 0.5 + jx - cx) * scale;
+        const py = (y + 0.5 + jy - cy) * scale;
+        const size = 0.0026 + dn*0.0044, glyph = Math.min(9, Math.round(dn*9));
+        const zg = (t/2) * scale;
+        push(px, py,  zg, 0, 0,  1, cr, cg, cb, size, glyph, band[y*nx+x], dn);
+        push(px, py, -zg, 0, 0, -1, cr, cg, cb, size, glyph, band[y*nx+x], dn);
+      }
+    }
+  }
+  return P;
+}
+
+function plyPoints(P){
+  const n = P.n;
+  const head = [
+    "ply",
+    "format binary_little_endian 1.0",
+    `comment growth instrument - ${S.system} - seed ${S.seed} - step ${S.steps}`,
+    `comment ramp ${S.ramp} - contour levels ${S.contours} - ${P.dense ? "dense sampling" : "grid sampling at " + S.particles + " per cell"}`,
+    "comment particle cloud - no faces - z up",
+    `element vertex ${n}`,
+    "property float x",
+    "property float y",
+    "property float z",
+    "property float nx",
+    "property float ny",
+    "property float nz",
+    "property uchar red",
+    "property uchar green",
+    "property uchar blue",
+    "property uchar alpha",
+    "property float size",
+    "property uchar glyph",
+    "property uchar band",
+    "property float density",
+    "end_header",
+    "",
+  ].join("\n");
+  const header = new TextEncoder().encode(head);
+  const vSize = 12 + 12 + 4 + 4 + 1 + 1 + 4;    // 38 bytes
+  const out = new ArrayBuffer(header.byteLength + n*vSize);
+  const u8 = new Uint8Array(out);
+  const dv = new DataView(out);
+  u8.set(header, 0);
+  let o = header.byteLength;
+  for (let i=0; i<n; i++){
+    dv.setFloat32(o,     P.x[i]*1, true);
+    dv.setFloat32(o+4,   P.y[i]*1, true);
+    dv.setFloat32(o+8,   P.z[i]*1, true);
+    dv.setFloat32(o+12,  P.nx[i], true);
+    dv.setFloat32(o+16,  P.ny[i], true);
+    dv.setFloat32(o+20,  P.nz[i], true);
+    dv.setUint8(o+24, P.r[i]);
+    dv.setUint8(o+25, P.g[i]);
+    dv.setUint8(o+26, P.b[i]);
+    dv.setUint8(o+27, 255);
+    dv.setFloat32(o+28, P.size[i], true);
+    dv.setUint8(o+32, P.glyph[i]);
+    dv.setUint8(o+33, P.band[i]);
+    dv.setFloat32(o+34, P.dens[i], true);
+    o += vSize;
+  }
+  return out;
+}
+
+function canVolume(){
+  return !S.playing || S.steps >= S.maxSteps;
+}
+
+function refreshExports(){
+  const ready = canVolume();
+  $("glb").disabled = !ready;
+  $("ascii").disabled = !ready;
+  $("ply").disabled = !ready;
+  $("volume").textContent = ready
+    ? "volume ready · " + VOL.nx + "×" + VOL.ny + "×" + VOL.nz
+    : "volume locked · pause or finish";
+}
+
+$("glb").addEventListener("click", ()=>{
+  if (!canVolume()) return;
+  const vol = buildVolume();
+  const mesh = meshVolume(vol);
+  if (!mesh.quads){ $("volume").textContent = "nothing to export - grow the form"; return; }
+  const bytes = glbBytes(vol, mesh);
+  $("volume").textContent = `glb ${(bytes.byteLength/1024/1024).toFixed(2)} MB · ${mesh.quads.toLocaleString()} quads · ${vol.voxels.toLocaleString()} voxels`;
+  download(`${S.system}-${S.seed}-${S.steps}.glb`, new Blob([bytes], {type:"model/gltf-binary"}));
+});
+
+$("ply").addEventListener("click", ()=>{
+  if (!canVolume()) return;
+  const vol = buildVolume();
+  const P = buildPoints(vol);
+  if (!P.n){ $("volume").textContent = "nothing to export - grow the form"; return; }
+  const bytes = plyPoints(P);
+  $("volume").textContent = `ply ${(bytes.byteLength/1024/1024).toFixed(2)} MB · ${P.n.toLocaleString()} particles`;
+  download(`${S.system}-${S.seed}-${S.steps}.ply`, new Blob([bytes], {type:"application/octet-stream"}));
+});
+
+$("ascii").addEventListener("click", ()=>{
+  if (!canVolume()) return;
+  const vol = buildVolume();
+  if (!vol.voxels){ $("volume").textContent = "nothing to export - grow the form"; return; }
+  const text = volumeASCII(vol);
+  $("volume").textContent = `ascii ${(text.length/1024).toFixed(0)} KB · ${vol.nx} cols · ${vol.nz} slices`;
+  download(`${S.system}-${S.seed}-${S.steps}.txt`, new Blob([text], {type:"text/plain"}));
+});
+
+/* ---------- wiring ---------- */
+sysSel.addEventListener("change", ()=>{
+  S.system = sysSel.value;
+  buildParams(); regrow(); permalink();
+});
+$("play").addEventListener("click", ()=> setPlaying(!S.playing));
+$("restart").addEventListener("click", ()=>regrow());
+$("speed").addEventListener("input", (e)=>{
+  S.speed = +e.target.value; $("speedV").textContent = S.speed;
+});
+$("growth").addEventListener("input", (e)=>{
+  S.growth = +e.target.value; $("growthV").textContent = S.growth + "%";
+  S.maxSteps = Math.round(SYSTEMS[S.system].base * (S.growth/100));
+  permalink(); updateStatus();
+});
+$("seed").addEventListener("change", (e)=>{
+  const v = parseInt(e.target.value,10);
+  S.seed = Number.isFinite(v) ? v >>> 0 : 1;
+  permalink(); regrow();
+});
+$("newseed").addEventListener("click", ()=>{
+  S.seed = Math.floor(Math.random()*4294967295) >>> 0;
+  $("seed").value = S.seed;
+  permalink(); regrow();
+});
+$("render").addEventListener("change", (e)=>{ S.render = e.target.value; draw(); });
+$("dither").addEventListener("change", (e)=>{ S.dither = e.target.value; draw(); });
+$("cell").addEventListener("input", (e)=>{
+  S.cell = +e.target.value; $("cellV").textContent = S.cell + "px"; draw();
+});
+$("contrast").addEventListener("input", (e)=>{
+  S.contrast = +e.target.value; $("contrastV").textContent = S.contrast.toFixed(2); draw();
+});
+$("bands").addEventListener("input", (e)=>{
+  S.bands = +e.target.value;
+  $("bandsV").textContent = S.bands === 0 ? "smooth" : S.bands;
+  permalink(); draw();
+});
+$("contours").addEventListener("input", (e)=>{
+  S.contours = +e.target.value;
+  $("contoursV").textContent = S.contours === 0 ? "off" : S.contours;
+  permalink();
+});
+$("points").addEventListener("change", (e)=>{
+  S.points = e.target.value;
+  permalink();
+  refreshExports();
+});
+
+function download(name, blob){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+
+$("png").addEventListener("click", ()=>{
+  const out = document.createElement("canvas");
+  out.width = OW*2; out.height = OH*2;
+  const c = out.getContext("2d");
+  c.imageSmoothingEnabled = false;
+  c.drawImage(view, 0, 0, OW*2, OH*2);
+  out.toBlob(b=>download(`${S.system}-${S.seed}-${S.steps}.png`, b), "image/png");
+});
+
+$("svg").addEventListener("click", ()=>{
+  const body = SYSTEMS[S.system].svg(state);
+  if (!body){ alert("This system renders to pixels. Use PNG."); return; }
+  const rm = ramp();
+  const stops = rm.stops.map((c,i)=>
+    `<stop offset="${(i/(rm.stops.length-1)).toFixed(3)}" stop-color="${c}"/>`).join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${GW} ${GH}" width="${GW*2}" height="${GH*2}">
+<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">${stops}</linearGradient></defs>
+<rect width="${GW}" height="${GH}" fill="${rm.stops[0]}"/>
+<g fill="url(#g)" stroke="url(#g)">${body}</g></svg>`;
+  download(`${S.system}-${S.seed}-${S.steps}.svg`, new Blob([svg], {type:"image/svg+xml"}));
+});
+
+/* ---------- boot ---------- */
+(function boot(){
+  const q = new URLSearchParams(location.search);
+  if (q.get("s") && SYSTEMS[q.get("s")]) S.system = q.get("s");
+  if (q.get("seed")) S.seed = (parseInt(q.get("seed"),10) >>> 0);
+  if (q.get("g")) S.growth = Math.min(100, Math.max(5, parseInt(q.get("g"),10) || 90));
+  if (q.get("pal") && RAMPS.some(r=>r.id===q.get("pal"))) S.ramp = q.get("pal");
+  if (q.get("bands") !== null) S.bands = Math.max(0, Math.min(16, parseInt(q.get("bands"),10) || 0));
+  if (q.get("contours") !== null) S.contours = Math.max(0, Math.min(12, parseInt(q.get("contours"),10) || 0));
+  if (["grid","25000","100000","400000"].includes(q.get("points"))) S.points = q.get("points");
+  if (q.get("particles") !== null) S.particles = Math.max(1, Math.min(8, parseInt(q.get("particles"),10) || 5));
+  sysSel.value = S.system;
+  $("seed").value = S.seed;
+  $("growth").value = S.growth; $("growthV").textContent = S.growth + "%";
+  $("bands").value = S.bands;
+  $("bandsV").textContent = S.bands === 0 ? "smooth" : S.bands;
+  $("contours").value = S.contours;
+  $("contoursV").textContent = S.contours === 0 ? "off" : S.contours;
+  $("points").value = S.points;
+  $("rampName").textContent = ramp().id;
+  [...rampHost.children].forEach(c=>c.setAttribute("aria-pressed", String(c.dataset.ramp === S.ramp)));
+  buildParams();
+  regrow();
+  permalink();
+  // ?step=N fast-forwards to a fixed step, so a form is addressable
+  const target = parseInt(q.get("step"), 10);
+  if (Number.isFinite(target) && target > 0){
+    const sys = SYSTEMS[S.system], p = paramMap();
+    const n = Math.min(target, S.maxSteps);
+    for (let i=0;i<n;i++){ sys.step(state, p); S.steps++; }
+    draw(); updateStatus();
+  }
+  let last = 0;
+  function loop(t){
+    requestAnimationFrame(loop);
+    if (t - last < 33) return;   // 30 fps cap
+    last = t;
+    tick();
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
